@@ -1,5 +1,5 @@
 // ============================================================
-// Enhancer for YouTube™ — Remember Speed Per Channel (v45)
+// Enhancer for YouTube™ — Remember Speed Per Channel (v46)
 // Paste this into: EfYT Options → Custom Script
 // ============================================================
 
@@ -144,7 +144,7 @@
 
 	const fetchChannelId = (playerResponse = fetchPlayerResponse()) => playerResponse?.videoDetails?.channelId;
 
-	const fetchChannelName = (playerResponse = fetchPlayerResponse()) => 
+	const fetchChannelName = (playerResponse = fetchPlayerResponse()) =>
 		playerResponse?.videoDetails?.author
 		?? document.querySelector(SELECTORS.channelName)?.textContent?.trim()
 		?? "Unknown Channel";
@@ -328,31 +328,81 @@
 	// ============================================================
 	// 8. SPEED CONTROLLER ENGINE
 	// ============================================================
+	function dispatchSpeedKey(key, code, keyCode)
+	{
+		const eventTarget = document.activeElement || document.body;
+		const eventOptions =
+			{
+				key: key,
+				code: code,
+				keyCode: keyCode,
+				which: keyCode,
+				shiftKey: true,
+				bubbles: true,
+				cancelable: true
+			};
+
+		eventTarget.dispatchEvent(new KeyboardEvent("keydown", eventOptions));
+		eventTarget.dispatchEvent(new KeyboardEvent("keyup", eventOptions));
+	}
+
+	function emulateSpeedUp()
+	{
+		dispatchSpeedKey(">", "Period", 190);
+	}
+
+	function emulateSpeedDown()
+	{
+		dispatchSpeedKey("<", "Comma", 188);
+	}
+
 	function stepToSpeed(targetPlaybackRate)
 	{
 		const videoElement = document.querySelector(SELECTORS.videoElement);
 		if (!videoElement) return false;
 
-		const speedUpButton = document.getElementById(SELECTORS.speedUpBtn);
-		const speedDownButton = document.getElementById(SELECTORS.speedDownBtn);
-
-		if (speedUpButton && speedDownButton)
+		let attemptCount = 0;
+		while (Math.abs(videoElement.playbackRate - targetPlaybackRate) > 0.001 && attemptCount++ < 30)
 		{
-			let attemptCount = 0;
-			while (Math.abs(videoElement.playbackRate - targetPlaybackRate) > 0.001 && attemptCount++ < 30)
+			const previousPlaybackRate = videoElement.playbackRate;
+
+			if (targetPlaybackRate > previousPlaybackRate)
 			{
-				const previousPlaybackRate = videoElement.playbackRate;
-				
-				if (targetPlaybackRate > previousPlaybackRate)
+				emulateSpeedUp();
+			}
+			else
+			{
+				emulateSpeedDown();
+			}
+
+			if (videoElement.playbackRate === previousPlaybackRate) break;
+		}
+
+		if (Math.abs(videoElement.playbackRate - targetPlaybackRate) > 0.001)
+		{
+			const speedUpButton = document.getElementById(SELECTORS.speedUpBtn);
+			const speedDownButton = document.getElementById(SELECTORS.speedDownBtn);
+
+			if (speedUpButton && speedDownButton)
+			{
+				attemptCount = 0;
+				while (Math.abs(videoElement.playbackRate - targetPlaybackRate) > 0.001 && attemptCount++ < 30)
 				{
-					speedUpButton.click();
+					const previousPlaybackRate = videoElement.playbackRate;
+
+					if (targetPlaybackRate > previousPlaybackRate)
+					{
+						speedUpButton.click();
+					}
+					else
+					{
+						speedDownButton.click();
+					}
+
+					if (videoElement.playbackRate === previousPlaybackRate) break;
 				}
-				else
-				{
-					speedDownButton.click();
-				}
-				
-				if (videoElement.playbackRate === previousPlaybackRate) break;
+
+				log("Speed adjusted via element click fallback (key emulation unavailable)");
 			}
 		}
 
@@ -361,7 +411,7 @@
 			videoElement.playbackRate = targetPlaybackRate;
 			log(`PlaybackRate set directly to ${targetPlaybackRate}x (UI controls unavailable)`);
 		}
-		
+
 		return Math.abs(videoElement.playbackRate - targetPlaybackRate) < 0.001;
 	}
 

@@ -21,7 +21,10 @@ Automatically saves and restores your preferred playback speed on a per-channel 
 1. Install the [Enhancer for YouTube™](https://www.mrfdev.com/enhancer-for-youtube) extension for Chrome, Edge, or Firefox.
 2. Open the **Enhancer for YouTube™ Options** page by clicking the extension icon in your browser toolbar.
 3. Navigate to the **Playback Speed** section.
-4. Select your preferred **Default Playback Speed**.
+4. Disable **"Override default playback speeds"**.
+> [!WARNING]
+> EfYT's implementation of **"Override default playback speeds"** can break sometimes and is not reliable. 
+5. Select your preferred **Default Playback Speed** from the dropdown menu. 
 5. Scroll down to the **Custom Script** section.
 6. Copy the entire contents of [YouTube_Channel_Speed_Controller.js](https://github.com/KenzKD/YouTube_Channel_Speed_Controller/blob/main/YouTube_Channel_Speed_Controller.js) and paste them into the Custom Script text area.
 7. Near the top of the pasted script, locate the line:
